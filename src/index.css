@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-orange-950: #431407;
+
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-red-950: #450a0a;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0.20in;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: white !important;
+  }
+  /* Hide everything except the print-active targets */
+  #root,
+  .fixed:not(.print-modal-parent),
+  button,
+  .no-print {
+    display: none !important;
+  }
+  /* Force container parents of print targets to display correctly */
+  .print-modal-parent {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  .print-modal-inner {
+    position: static !important;
+    max-width: none !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  .print-scroll-area {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  /* Set exact values for print element */
+  .print-invoice-wrapper {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 0.20in !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

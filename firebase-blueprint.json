@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Represents a government billing invoice",
+      "type": "object",
+      "properties": {
+        "invoiceNo": { "type": "string" },
+        "invoiceDate": { "type": "string", "format": "date" },
+        "clientId": { "type": "string" },
+        "companyId": { "type": "string" },
+        "company": { "$ref": "#/entities/CompanyProfile" },
+        "billTo": { 
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "address": { "type": "string" },
+            "gstin": { "type": "string" },
+            "placeOfSupply": { "type": "string" }
+          }
+        },
+        "shipTo": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "address": { "type": "string" }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hsn": { "type": "string" },
+              "description": { "type": "string" },
+              "qty": { "type": "number" },
+              "unit": { "type": "string" },
+              "rate": { "type": "number" },
+              "taxRate": { "type": "number" },
+              "taxAmount": { "type": "number" },
+              "amount": { "type": "number" }
+            }
+          }
+        },
+        "totalTaxableValue": { "type": "number" },
+        "totalTaxAmount": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "amountInWords": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "sent", "paid", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["invoiceNo", "invoiceDate", "clientId", "items", "totalAmount"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "A government department or agency receiving bills",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "gstin": { "type": "string" },
+        "contactPerson": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "CompanyProfile": {
+      "title": "Company Profile",
+      "description": "Configuration for the service provider (the user)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "gstin": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "pan": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "isDefault": { "type": "boolean" },
+        "createdBy": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Collection of all generated invoices"
+    },
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Directory of government agencies"
+    },
+    "/companies/{companyId}": {
+      "schema": "CompanyProfile",
+      "description": "Collection of multiple user company profiles"
+    },
+    "/settings/{userId}": {
+      "schema": "CompanyProfile",
+      "description": "User-specific business settings"
+    }
+  }
+}
