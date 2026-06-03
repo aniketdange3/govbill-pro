@@ -715,8 +715,8 @@ export default function App() {
             <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-600"></div>
 
             <div className="flex flex-col items-center mb-8">
-              <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-200 mb-4 transform rotate-3">
-                <FileText size={32} />
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-orange-100 mb-4 transform rotate-3 overflow-hidden border border-slate-100">
+                <img src="/src/assets/images/g.png" alt="GovBill Pro Logo" className="w-12 h-12 object-contain" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900">GovBill Pro</h1>
               <p className="text-slate-500 text-xs text-center mt-1 uppercase tracking-wider font-semibold">

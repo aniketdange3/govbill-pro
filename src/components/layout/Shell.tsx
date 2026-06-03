@@ -25,9 +25,7 @@ export default function Shell({ children, activeTab, setActiveTab, user, onLogou
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
         <div className="p-6 border-bottom border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-200">
-            <FileText size={24} />
-          </div>
+          <img src="/src/assets/images/g.png" alt="GovBill Pro" className="w-10 h-10 object-contain rounded-lg shadow-md shadow-orange-100" />
           <div>
             <h1 className="font-bold text-slate-900 leading-none">GovBill</h1>
             <span className="text-xs text-orange-600 font-medium">Pro Software</span>
