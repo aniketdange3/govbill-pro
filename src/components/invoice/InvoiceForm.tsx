@@ -153,10 +153,12 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
     const totalTax = sampleItems.reduce((acc, item) => acc + item.taxAmount, 0);
     const grandTotal = totalTaxable + totalTax;
 
-    setInvoice({
+    const firstClient = clients?.[0];
+    setInvoice(prev => ({
+      ...prev,
       invoiceNo: '107',
       invoiceDate: new Date().toISOString().split('T')[0],
-      clientId: 'sampleclientid',
+      clientId: firstClient?.id || '',
       billTo: {
         name: 'GRAMPANCHAYAT WELA HARISHCHANDRA TAH. DIST. NAGPUR',
         address: 'WELAHARI, TAH. DIST. NAGPUR, MAHARASHTRA, 440037',
@@ -175,7 +177,7 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
       totalAmount: grandTotal,
       amountInWords: amountToWords(grandTotal),
       status: 'sent'
-    });
+    }));
   };
 
   const addItem = () => {

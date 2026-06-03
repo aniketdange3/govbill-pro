@@ -201,17 +201,17 @@ export default function InvoicePreview({ invoice, company, onClose, onUpdateStat
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-705 cursor-pointer hover:bg-slate-50 transition-colors select-none mr-1 shadow-sm">
-              <input
-                type="checkbox"
-                checked={hideZero}
-                onChange={(e) => setHideZero(e.target.checked)}
-                className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 cursor-pointer"
-              />
-              Hide Zero Taxes
-            </label>
+
             {onUpdateStatus && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
               <>
+                {invoice.status === 'draft' && (
+                  <button
+                    onClick={() => onUpdateStatus('sent')}
+                    className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    Mark as Sent
+                  </button>
+                )}
                 <button
                   onClick={() => onUpdateStatus('paid')}
                   className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all"
@@ -227,8 +227,8 @@ export default function InvoicePreview({ invoice, company, onClose, onUpdateStat
               </>
             )}
             {onEdit && (
-              <button 
-                onClick={onEdit} 
+              <button
+                onClick={onEdit}
                 className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
               >
                 Edit Invoice
@@ -236,9 +236,6 @@ export default function InvoicePreview({ invoice, company, onClose, onUpdateStat
             )}
             <button onClick={downloadPDF} className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-orange-700 shadow-lg shadow-orange-100">
               <Download size={14} /> Download PDF
-            </button>
-            <button onClick={() => window.print()} className="p-2 text-slate-500 hover:bg-slate-200 rounded-lg">
-              <Printer size={18} />
             </button>
             <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-200 rounded-lg">
               <X size={18} />

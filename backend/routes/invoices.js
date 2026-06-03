@@ -71,6 +71,19 @@ router.post('/', async (req, res) => {
 
   const conn = await pool.getConnection();
   try {
+    if (company_id) {
+      const [comp] = await conn.execute('SELECT id FROM companies WHERE id = ? AND user_id = ?', [company_id, req.user.id]);
+      if (comp.length === 0) {
+        return res.status(400).json({ error: 'The selected seller company profile does not exist.' });
+      }
+    }
+    if (client_id) {
+      const [cli] = await conn.execute('SELECT id FROM clients WHERE id = ? AND user_id = ?', [client_id, req.user.id]);
+      if (cli.length === 0) {
+        return res.status(400).json({ error: 'The selected client/department does not exist.' });
+      }
+    }
+
     await conn.beginTransaction();
 
     const id = uuidv4();
@@ -171,6 +184,19 @@ router.put('/:id', async (req, res) => {
 
   const conn = await pool.getConnection();
   try {
+    if (company_id) {
+      const [comp] = await conn.execute('SELECT id FROM companies WHERE id = ? AND user_id = ?', [company_id, req.user.id]);
+      if (comp.length === 0) {
+        return res.status(400).json({ error: 'The selected seller company profile does not exist.' });
+      }
+    }
+    if (client_id) {
+      const [cli] = await conn.execute('SELECT id FROM clients WHERE id = ? AND user_id = ?', [client_id, req.user.id]);
+      if (cli.length === 0) {
+        return res.status(400).json({ error: 'The selected client/department does not exist.' });
+      }
+    }
+
     await conn.beginTransaction();
 
     // Verify ownership

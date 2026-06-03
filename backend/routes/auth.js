@@ -21,8 +21,11 @@ router.post('/register', async (req, res) => {
   }
 
   try {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = full_name.trim();
+
     // Check if email already exists
-    const [existing] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [existing] = await pool.execute('SELECT id FROM users WHERE email = ?', [cleanEmail]);
     if (existing.length > 0) {
       return res.status(409).json({ error: 'An account with this email already exists.' });
     }
@@ -32,7 +35,7 @@ router.post('/register', async (req, res) => {
 
     await pool.execute(
       'INSERT INTO users (id, full_name, email, password_hash) VALUES (?, ?, ?, ?)',
-      [id, full_name, email.toLowerCase().trim(), password_hash]
+      [id, cleanName, cleanEmail, password_hash]
     );
 
     const token = jwt.sign({ id, email: email.toLowerCase().trim(), name: full_name }, JWT_SECRET, {

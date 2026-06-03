@@ -52,6 +52,7 @@ export default function App() {
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
   const [isCreatingCompany, setIsCreatingCompany] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyProfile | null>(null);
@@ -465,24 +466,39 @@ export default function App() {
     }
   };
 
-  // ─── Client handlers ────────────────────────────────────────────────────────
   const saveClient = async () => {
     if (!newClient.name) return;
     try {
-      const created = await clientsAPI.create({
-        name: newClient.name,
-        address: newClient.address,
-        gstin: newClient.gstin,
-        contact_person: newClient.contactPerson,
-        email: newClient.email,
-        phone: newClient.phone,
-      });
-      setClients(prev => [created, ...prev]);
-      setIsCreatingClient(false);
-      setNewClient({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
-      showToast('Department added successfully!', 'success');
+      if (editingClient?.id) {
+        const updated = await clientsAPI.update(editingClient.id, {
+          name: newClient.name,
+          address: newClient.address,
+          gstin: newClient.gstin,
+          contact_person: newClient.contactPerson,
+          email: newClient.email,
+          phone: newClient.phone,
+        });
+        setClients(prev => prev.map(c => c.id === editingClient.id ? updated : c));
+        setIsCreatingClient(false);
+        setEditingClient(null);
+        setNewClient({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
+        showToast('Department updated successfully!', 'success');
+      } else {
+        const created = await clientsAPI.create({
+          name: newClient.name,
+          address: newClient.address,
+          gstin: newClient.gstin,
+          contact_person: newClient.contactPerson,
+          email: newClient.email,
+          phone: newClient.phone,
+        });
+        setClients(prev => [created, ...prev]);
+        setIsCreatingClient(false);
+        setNewClient({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
+        showToast('Department added successfully!', 'success');
+      }
     } catch (err: any) {
-      showToast(err.message || 'Failed to add department.', 'error');
+      showToast(err.message || 'Failed to save department.', 'error');
     }
   };
 
@@ -572,60 +588,78 @@ export default function App() {
   // ─── Auth Screen ────────────────────────────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.1),transparent)]">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-slate-200/50 p-8 border border-slate-100 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-600"></div>
+      <>
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.1),transparent)]">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-slate-200/50 p-8 border border-slate-100 overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-600"></div>
 
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-200 mb-4 transform rotate-3">
-              <FileText size={32} />
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-200 mb-4 transform rotate-3">
+                <FileText size={32} />
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900">GovBill Pro</h1>
+              <p className="text-slate-500 text-xs text-center mt-1 uppercase tracking-wider font-semibold">
+                Government Billing & GST Software
+              </p>
+              <span className="mt-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200 uppercase tracking-wider">
+                🗄️ MySQL Backend
+              </span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">GovBill Pro</h1>
-            <p className="text-slate-500 text-xs text-center mt-1 uppercase tracking-wider font-semibold">
-              Government Billing & GST Software
-            </p>
-            <span className="mt-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200 uppercase tracking-wider">
-              🗄️ MySQL Backend
-            </span>
-          </div>
 
-          {/* Tab */}
-          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl mb-6">
-            {(['login', 'register'] as const).map(mode => (
-              <button key={mode} type="button"
-                className={cn("py-2 text-xs font-bold rounded-lg transition-all", authMode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900")}
-                onClick={() => setAuthMode(mode)}>
-                {mode === 'login' ? 'Sign In' : 'Create Account'}
-              </button>
-            ))}
-          </div>
+            {/* Tab */}
+            <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl mb-6">
+              {(['login', 'register'] as const).map(mode => (
+                <button key={mode} type="button"
+                  className={cn("py-2 text-xs font-bold rounded-lg transition-all", authMode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900")}
+                  onClick={() => setAuthMode(mode)}>
+                  {mode === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
 
-          <form onSubmit={handleAuth} className="space-y-4">
-            {authMode === 'register' && (
+            <form onSubmit={handleAuth} className="space-y-4">
+              {authMode === 'register' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                  <input type="text" placeholder="e.g. Prem Moon" value={authName} onChange={e => setAuthName(e.target.value)}
+                    className="w-full h-11 px-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 font-semibold outline-none transition-all" required />
+                </div>
+              )}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
-                <input type="text" placeholder="e.g. Prem Moon" value={authName} onChange={e => setAuthName(e.target.value)}
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                <input type="email" placeholder="you@government.in" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                   className="w-full h-11 px-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 font-semibold outline-none transition-all" required />
               </div>
-            )}
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
-              <input type="email" placeholder="you@government.in" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                className="w-full h-11 px-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 font-semibold outline-none transition-all" required />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
-              <input type="password" placeholder="••••••••" value={authPassword} onChange={e => setAuthPassword(e.target.value)}
-                className="w-full h-11 px-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 font-semibold outline-none transition-all" required />
-              {authMode === 'register' && <p className="text-[10px] text-slate-400">Must be at least 6 characters.</p>}
-            </div>
-            <button type="submit" disabled={authLoading}
-              className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
-              {authLoading ? <Loader2 size={16} className="animate-spin" /> : (authMode === 'login' ? 'Sign In' : 'Register & Log In')}
-            </button>
-          </form>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                <input type="password" placeholder="••••••••" value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 font-semibold outline-none transition-all" required />
+                {authMode === 'register' && <p className="text-[10px] text-slate-400">Must be at least 6 characters.</p>}
+              </div>
+              <button type="submit" disabled={authLoading}
+                className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
+                {authLoading ? <Loader2 size={16} className="animate-spin" /> : (authMode === 'login' ? 'Sign In' : 'Register & Log In')}
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+
+        {/* Toast */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div initial={{ opacity: 0, y: 50, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-5 py-4 bg-white border border-slate-100 rounded-3xl shadow-2xl shadow-slate-300 max-w-sm">
+              <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' : toast.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600')}>
+                {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 uppercase tracking-wide">{toast.type === 'success' ? 'Success' : toast.type === 'error' ? 'Error' : 'Info'}</p>
+                <p className="text-xs text-slate-500 font-medium">{toast.message}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
@@ -827,21 +861,24 @@ export default function App() {
                 <UserPlus size={16} /> Add Client
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {clients.map(client => (
                 <div key={client.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-full translate-x-12 -translate-y-12 transition-transform group-hover:scale-150"></div>
                   <Building size={24} className="text-orange-600 mb-4 relative z-10" />
                   <h4 className="font-bold text-slate-900 mb-1 relative z-10">{client.name}</h4>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-2 h-8 relative z-10">{client.address}</p>
-                  <div className="space-y-0.5 text-[10px] text-slate-500 mb-4 h-12 overflow-hidden relative z-10 border-t border-dashed border-slate-100 pt-2">
+                  <p className="text-xs text-slate-500 mb-2 relative z-10">{client.address}</p>
+                  <div className="space-y-1 text-[10px] text-slate-500 mb-4 relative z-10 border-t border-dashed border-slate-100 pt-2">
                     {client.contactPerson && <div>Contact: <span className="font-bold text-slate-700">{client.contactPerson}</span></div>}
                     {client.phone && <div>Phone: <span className="font-mono text-slate-700">{client.phone}</span></div>}
                     {client.email && <div>Email: <span className="font-mono text-slate-700">{client.email}</span></div>}
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex justify-between items-center relative z-10">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">GSTIN: {client.gstin || 'N/A'}</span>
-                    <button onClick={() => deleteClient(client.id!)} className="text-red-300 hover:text-red-500 transition-colors p-1 rounded hover:bg-slate-50"><Trash2 size={14} /></button>
+                    <div className="flex gap-1.5 items-center">
+                      <button onClick={() => { setEditingClient(client); setNewClient({ name: client.name, address: client.address || '', gstin: client.gstin || '', contactPerson: client.contactPerson || '', email: client.email || '', phone: client.phone || '' }); setIsCreatingClient(true); }} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Edit</button>
+                      <button onClick={() => deleteClient(client.id!)} className="text-slate-300 hover:text-red-500 transition-colors p-1.5 rounded hover:bg-slate-50"><Trash2 size={14} /></button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -862,7 +899,7 @@ export default function App() {
                 <Building size={16} /> Add Company
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {companies.map(comp => (
                 <div key={comp.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between min-h-[220px]">
                   <div>
@@ -871,7 +908,7 @@ export default function App() {
                       {comp.isDefault && <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase rounded-full tracking-wider border border-emerald-100">Default</span>}
                     </div>
                     <h4 className="font-bold text-slate-900 mb-1 leading-snug">{comp.name}</h4>
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8 leading-normal">{comp.address}</p>
+                    <p className="text-xs text-slate-500 mb-3 leading-normal">{comp.address}</p>
                     <div className="space-y-1 text-[11px] text-slate-600 mb-4 border-t border-dashed border-slate-100 pt-3">
                       <div>GSTIN: <span className="font-bold font-mono text-slate-800">{comp.gstin || 'N/A'}</span></div>
                       <div>PAN: <span className="font-bold font-mono text-slate-800">{comp.pan || 'N/A'}</span></div>
@@ -964,7 +1001,7 @@ export default function App() {
         {isCreatingClient && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div className="w-full max-w-md bg-white rounded-3xl p-8 space-y-6">
-              <h3 className="text-lg font-bold text-slate-900">New Department / Client</h3>
+              <h3 className="text-lg font-bold text-slate-900">{editingClient ? 'Edit Department / Client' : 'New Department / Client'}</h3>
               <div className="space-y-3">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Department/Agency Name</label>
@@ -996,8 +1033,8 @@ export default function App() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setIsCreatingClient(false)} className="flex-1 py-2 font-bold text-slate-500">Cancel</button>
-                <button onClick={saveClient} className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-md shadow-orange-100">Add Department</button>
+                <button onClick={() => { setIsCreatingClient(false); setEditingClient(null); }} className="flex-1 py-2 font-bold text-slate-500">Cancel</button>
+                <button onClick={saveClient} className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-md shadow-orange-100">{editingClient ? 'Save Changes' : 'Add Department'}</button>
               </div>
             </div>
           </motion.div>

@@ -70,7 +70,6 @@ export default function Shell({ children, activeTab, setActiveTab, user, onLogou
               <p className="text-xs font-semibold text-slate-900 truncate">
                 {user?.name || user?.email}
               </p>
-              <p className="text-[10px] text-emerald-600 truncate uppercase tracking-wider font-bold">🗄️ MySQL Backend</p>
             </div>
           </div>
           <button
@@ -90,7 +89,7 @@ export default function Shell({ children, activeTab, setActiveTab, user, onLogou
             <h2 className="font-semibold text-slate-900 capitalize">{activeTab}</h2>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={onLogout}
               className="md:hidden p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl transition-all"
               title="Sign Out"
