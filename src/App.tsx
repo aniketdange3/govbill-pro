@@ -381,12 +381,45 @@ export default function App() {
     if (user) loadAllData();
   }, [user, loadAllData]);
 
-  // ─── Auth handlers ──────────────────────────────────────────────────────────
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authEmail || !authPassword) { showToast('Please fill all fields.', 'error'); return; }
-    if (authMode === 'register' && !authName) { showToast('Full name is required.', 'error'); return; }
-    if (authPassword.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+    if (!authEmail || !authPassword) {
+      alert('Please fill all fields.');
+      showToast('Please fill all fields.', 'error');
+      return;
+    }
+    if (authMode === 'register' && !authName) {
+      alert('Full name is required.');
+      showToast('Full name is required.', 'error');
+      return;
+    }
+    if (authPassword.length < 6) {
+      alert('Password must be at least 6 characters.');
+      showToast('Password must be at least 6 characters.', 'error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(authEmail.trim())) {
+      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    if (authMode === 'register') {
+      const trimmedName = authName.trim();
+      if (trimmedName.length < 3) {
+        alert('Name must be at least 3 characters.');
+        showToast('Name must be at least 3 characters.', 'error');
+        return;
+      }
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(trimmedName)) {
+        alert('Name can only contain letters and spaces.');
+        showToast('Name can only contain letters and spaces.', 'error');
+        return;
+      }
+    }
 
     setAuthLoading(true);
     try {
@@ -467,7 +500,32 @@ export default function App() {
   };
 
   const saveClient = async () => {
-    if (!newClient.name) return;
+    if (!newClient.name?.trim()) {
+      alert('Department/Client name is required.');
+      showToast('Department/Client name is required.', 'error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (newClient.email?.trim() && !emailRegex.test(newClient.email.trim())) {
+      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (newClient.phone?.trim() && !phoneRegex.test(newClient.phone.trim())) {
+      alert('Phone number must be a valid 10-digit mobile number.');
+      showToast('Phone number must be a valid 10-digit mobile number.', 'error');
+      return;
+    }
+
+    if (newClient.gstin?.trim() && newClient.gstin.trim().length !== 15) {
+      alert('GSTIN must be exactly 15 characters.');
+      showToast('GSTIN must be exactly 15 characters.', 'error');
+      return;
+    }
+
     try {
       if (editingClient?.id) {
         const updated = await clientsAPI.update(editingClient.id, {
@@ -515,7 +573,38 @@ export default function App() {
 
   // ─── Company handlers ───────────────────────────────────────────────────────
   const handleSaveCompany = async () => {
-    if (!newCompany.name) return;
+    if (!newCompany.name?.trim()) {
+      alert('Company name is required.');
+      showToast('Company name is required.', 'error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (newCompany.email?.trim() && !emailRegex.test(newCompany.email.trim())) {
+      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (newCompany.phone?.trim() && !phoneRegex.test(newCompany.phone.trim())) {
+      alert('Phone number must be a valid 10-digit mobile number.');
+      showToast('Phone number must be a valid 10-digit mobile number.', 'error');
+      return;
+    }
+
+    if (newCompany.gstin?.trim() && newCompany.gstin.trim().length !== 15) {
+      alert('GSTIN must be exactly 15 characters.');
+      showToast('GSTIN must be exactly 15 characters.', 'error');
+      return;
+    }
+
+    if (newCompany.pan?.trim() && newCompany.pan.trim().length !== 10) {
+      alert('PAN must be exactly 10 characters.');
+      showToast('PAN must be exactly 10 characters.', 'error');
+      return;
+    }
+
     try {
       if (editingCompany?.id) {
         const updated = await companiesAPI.update(editingCompany.id, newCompany);
@@ -560,6 +649,38 @@ export default function App() {
   };
 
   const updateCompanySettings = async () => {
+    if (!company.name?.trim()) {
+      alert('Company name is required.');
+      showToast('Company name is required.', 'error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (company.email?.trim() && !emailRegex.test(company.email.trim())) {
+      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (company.phone?.trim() && !phoneRegex.test(company.phone.trim())) {
+      alert('Phone number must be a valid 10-digit mobile number.');
+      showToast('Phone number must be a valid 10-digit mobile number.', 'error');
+      return;
+    }
+
+    if (company.gstin?.trim() && company.gstin.trim().length !== 15) {
+      alert('GSTIN must be exactly 15 characters.');
+      showToast('GSTIN must be exactly 15 characters.', 'error');
+      return;
+    }
+
+    if (company.pan?.trim() && company.pan.trim().length !== 10) {
+      alert('PAN must be exactly 10 characters.');
+      showToast('PAN must be exactly 10 characters.', 'error');
+      return;
+    }
+
     const target = companies.find(c => c.isDefault) || companies[0];
     if (!target?.id) {
       try {

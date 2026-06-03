@@ -15,7 +15,7 @@ interface InvoiceFormProps {
 
 export default function InvoiceForm({ onSave, onCancel, clients, companies, lastInvoiceNo, initialData }: InvoiceFormProps) {
   const [step, setStep] = useState(1);
-  const [errors, setErrors] = useState<{ invoiceNo?: string; invoiceDate?: string }>({});
+  const [errors, setErrors] = useState<{ invoiceNo?: string; invoiceDate?: string; companyId?: string; clientId?: string; items?: string }>({});
   const defaultCompany = companies?.find(c => c.isDefault) || companies?.[0];
   const [invoice, setInvoice] = useState<Partial<Invoice>>(initialData ? {
     ...initialData,
@@ -181,7 +181,18 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
   };
 
   const addItem = () => {
-    if (!newItem.description || !newItem.rate) return;
+    if (!newItem.description?.trim()) {
+      alert('Item description is required.');
+      return;
+    }
+    if (!newItem.rate || newItem.rate <= 0) {
+      alert('Item rate must be greater than 0.');
+      return;
+    }
+    if (!newItem.qty || newItem.qty <= 0) {
+      alert('Item quantity must be greater than 0.');
+      return;
+    }
     
     const taxableValue = (newItem.qty || 1) * (newItem.rate || 0);
     const tax = calculateTax(newItem.taxRate || 0, taxableValue);
@@ -201,6 +212,7 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
     const updatedItems = [...(invoice.items || []), item];
     updateTotals(updatedItems);
     setNewItem({ hsn: '', description: '', qty: 1, unit: 'PCS', rate: 0, taxRate: 18 });
+    setErrors(prev => ({ ...prev, items: undefined }));
   };
 
   const removeItem = (id: string) => {
@@ -237,6 +249,7 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
         },
         shipTo: { name: client.name, address: client.address }
       }));
+      setErrors(prev => ({ ...prev, clientId: undefined }));
     }
   };
 
@@ -326,7 +339,6 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
                  </div>
                  <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600">Client / Buyer and Seller Details</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Seller / Company</label>
                         <select 
@@ -335,29 +347,42 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
                             const comp = companies?.find(c => c.id === e.target.value);
                             if (comp) {
                               setInvoice(prev => ({ ...prev, companyId: comp.id, company: comp }));
+                              setErrors(prev => ({ ...prev, companyId: undefined }));
                             }
                           }}
-                          className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-xs font-semibold"
+                          className={cn(
+                            "w-full px-4 py-2 bg-white border rounded-xl outline-none text-xs font-semibold focus:border-orange-500 transition-colors",
+                            errors.companyId ? "border-rose-500" : "border-slate-200"
+                          )}
                         >
+                          <option value="">Select a Company</option>
                           {companies && companies.length > 0 ? (
                             companies.map(c => <option key={c.id} value={c.id}>{c.name} {c.isDefault ? '(Default)' : ''}</option>)
                           ) : (
                             <option value="">No companies configured</option>
                           )}
                         </select>
+                        {errors.companyId && (
+                          <p className="text-[10px] font-semibold text-rose-500 mt-1">{errors.companyId}</p>
+                        )}
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Client / Buyer</label>
                         <select 
                           onChange={(e) => handleClientSelect(e.target.value)}
-                          className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-xs font-semibold"
+                          className={cn(
+                            "w-full px-4 py-2 bg-white border rounded-xl outline-none text-xs font-semibold focus:border-orange-500 transition-colors",
+                            errors.clientId ? "border-rose-500" : "border-slate-200"
+                          )}
                           value={invoice.clientId || ''}
                         >
                           <option value="">Choose a Department/Agency</option>
                           {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
+                        {errors.clientId && (
+                          <p className="text-[10px] font-semibold text-rose-500 mt-1">{errors.clientId}</p>
+                        )}
                       </div>
-                    </div>
                  </div>
                  <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600">Work Subject / Gat (Optional)</label>
@@ -485,6 +510,9 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
 
              {/* Items Table */}
              <div className="space-y-3">
+                {errors.items && (
+                  <p className="text-xs font-extrabold text-rose-500 bg-rose-50 border border-rose-200/60 rounded-2xl p-4 text-center">{errors.items}</p>
+                )}
                 {(invoice.items || []).map((item, idx) => (
                   <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors group">
                     <span className="text-xs font-bold text-slate-300 w-4">{idx + 1}</span>
@@ -546,16 +574,23 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
           {step === 1 ? (
             <button 
               onClick={() => {
-                const newErrors: { invoiceNo?: string; invoiceDate?: string } = {};
+                const newErrors: { invoiceNo?: string; invoiceDate?: string; companyId?: string; clientId?: string } = {};
                 if (!invoice.invoiceNo?.trim()) {
                   newErrors.invoiceNo = 'Invoice number is required.';
                 }
                 if (!invoice.invoiceDate) {
                   newErrors.invoiceDate = 'Invoice date is required.';
                 }
+                if (!invoice.companyId) {
+                  newErrors.companyId = 'Seller company is required.';
+                }
+                if (!invoice.clientId) {
+                  newErrors.clientId = 'Client / Department is required.';
+                }
 
                 if (Object.keys(newErrors).length > 0) {
                   setErrors(newErrors);
+                  alert(Object.values(newErrors).join('\n'));
                   return;
                 }
                 setErrors({});
@@ -568,17 +603,29 @@ export default function InvoiceForm({ onSave, onCancel, clients, companies, last
           ) : (
             <button 
               onClick={() => {
-                const newErrors: { invoiceNo?: string; invoiceDate?: string } = {};
+                const newErrors: { invoiceNo?: string; invoiceDate?: string; companyId?: string; clientId?: string; items?: string } = {};
                 if (!invoice.invoiceNo?.trim()) {
                   newErrors.invoiceNo = 'Invoice number is required.';
                 }
                 if (!invoice.invoiceDate) {
                   newErrors.invoiceDate = 'Invoice date is required.';
                 }
+                if (!invoice.companyId) {
+                  newErrors.companyId = 'Seller company is required.';
+                }
+                if (!invoice.clientId) {
+                  newErrors.clientId = 'Client / Department is required.';
+                }
+                if (!invoice.items || invoice.items.length === 0) {
+                  newErrors.items = 'Please add at least one item to the invoice before saving.';
+                }
 
                 if (Object.keys(newErrors).length > 0) {
                   setErrors(newErrors);
-                  setStep(1);
+                  alert(Object.values(newErrors).join('\n'));
+                  if (newErrors.invoiceNo || newErrors.invoiceDate || newErrors.companyId || newErrors.clientId) {
+                    setStep(1);
+                  }
                   return;
                 }
                 setErrors({});
