@@ -11,6 +11,8 @@ import { formatCurrency, cn, amountToWords } from '@/src/lib/utils';
 import { format } from 'date-fns';
 import InvoiceForm from '@/src/components/invoice/InvoiceForm';
 import InvoicePreview from '@/src/components/invoice/InvoicePreview';
+import ClientModal from '@/src/components/modals/ClientModal';
+import CompanyModal from '@/src/components/modals/CompanyModal';
 import {
   authAPI, companiesAPI, clientsAPI, invoicesAPI,
   getToken, setToken, clearToken,
@@ -53,10 +55,8 @@ export default function App() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [newClient, setNewClient] = useState({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
   const [isCreatingCompany, setIsCreatingCompany] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyProfile | null>(null);
-  const [newCompany, setNewCompany] = useState<Partial<CompanyProfile>>({ name: '', address: '', gstin: '', phone: '', email: '', pan: '' });
   const [toast, setToast] = useState<ToastType | null>(null);
   const [stats, setStats] = useState({ totalRevenue: 0, outstanding: 0, pendingCount: 0, totalClients: 0 });
 
@@ -499,60 +499,32 @@ export default function App() {
     }
   };
 
-  const saveClient = async () => {
-    if (!newClient.name?.trim()) {
-      alert('Department/Client name is required.');
-      showToast('Department/Client name is required.', 'error');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (newClient.email?.trim() && !emailRegex.test(newClient.email.trim())) {
-      alert('Please enter a valid email address.');
-      showToast('Please enter a valid email address.', 'error');
-      return;
-    }
-
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (newClient.phone?.trim() && !phoneRegex.test(newClient.phone.trim())) {
-      alert('Phone number must be a valid 10-digit mobile number.');
-      showToast('Phone number must be a valid 10-digit mobile number.', 'error');
-      return;
-    }
-
-    if (newClient.gstin?.trim() && newClient.gstin.trim().length !== 15) {
-      alert('GSTIN must be exactly 15 characters.');
-      showToast('GSTIN must be exactly 15 characters.', 'error');
-      return;
-    }
-
+  const saveClient = async (clientData: { name: string; address: string; gstin: string; contactPerson: string; email: string; phone: string }) => {
     try {
       if (editingClient?.id) {
         const updated = await clientsAPI.update(editingClient.id, {
-          name: newClient.name,
-          address: newClient.address,
-          gstin: newClient.gstin,
-          contact_person: newClient.contactPerson,
-          email: newClient.email,
-          phone: newClient.phone,
+          name: clientData.name,
+          address: clientData.address,
+          gstin: clientData.gstin,
+          contact_person: clientData.contactPerson,
+          email: clientData.email,
+          phone: clientData.phone,
         });
         setClients(prev => prev.map(c => c.id === editingClient.id ? updated : c));
         setIsCreatingClient(false);
         setEditingClient(null);
-        setNewClient({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
         showToast('Department updated successfully!', 'success');
       } else {
         const created = await clientsAPI.create({
-          name: newClient.name,
-          address: newClient.address,
-          gstin: newClient.gstin,
-          contact_person: newClient.contactPerson,
-          email: newClient.email,
-          phone: newClient.phone,
+          name: clientData.name,
+          address: clientData.address,
+          gstin: clientData.gstin,
+          contact_person: clientData.contactPerson,
+          email: clientData.email,
+          phone: clientData.phone,
         });
         setClients(prev => [created, ...prev]);
         setIsCreatingClient(false);
-        setNewClient({ name: '', address: '', gstin: '', contactPerson: '', email: '', phone: '' });
         showToast('Department added successfully!', 'success');
       }
     } catch (err: any) {
@@ -572,52 +544,19 @@ export default function App() {
   };
 
   // ─── Company handlers ───────────────────────────────────────────────────────
-  const handleSaveCompany = async () => {
-    if (!newCompany.name?.trim()) {
-      alert('Company name is required.');
-      showToast('Company name is required.', 'error');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (newCompany.email?.trim() && !emailRegex.test(newCompany.email.trim())) {
-      alert('Please enter a valid email address.');
-      showToast('Please enter a valid email address.', 'error');
-      return;
-    }
-
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (newCompany.phone?.trim() && !phoneRegex.test(newCompany.phone.trim())) {
-      alert('Phone number must be a valid 10-digit mobile number.');
-      showToast('Phone number must be a valid 10-digit mobile number.', 'error');
-      return;
-    }
-
-    if (newCompany.gstin?.trim() && newCompany.gstin.trim().length !== 15) {
-      alert('GSTIN must be exactly 15 characters.');
-      showToast('GSTIN must be exactly 15 characters.', 'error');
-      return;
-    }
-
-    if (newCompany.pan?.trim() && newCompany.pan.trim().length !== 10) {
-      alert('PAN must be exactly 10 characters.');
-      showToast('PAN must be exactly 10 characters.', 'error');
-      return;
-    }
-
+  const handleSaveCompany = async (companyData: Partial<CompanyProfile>) => {
     try {
       if (editingCompany?.id) {
-        const updated = await companiesAPI.update(editingCompany.id, newCompany);
+        const updated = await companiesAPI.update(editingCompany.id, companyData);
         setCompanies(prev => prev.map(c => c.id === editingCompany.id ? updated : c));
         showToast('Company updated!', 'success');
       } else {
-        const created = await companiesAPI.create(newCompany);
+        const created = await companiesAPI.create(companyData);
         setCompanies(prev => [...prev, created]);
         showToast('Company profile added!', 'success');
       }
       setIsCreatingCompany(false);
       setEditingCompany(null);
-      setNewCompany({ name: '', address: '', gstin: '', phone: '', email: '', pan: '' });
     } catch (err: any) {
       showToast(err.message || 'Failed to save company.', 'error');
     }
@@ -997,7 +936,7 @@ export default function App() {
                   <div className="pt-4 border-t border-slate-100 flex justify-between items-center relative z-10">
                     <span className="text-[10px] font-bold text-slate-400 uppercase">GSTIN: {client.gstin || 'N/A'}</span>
                     <div className="flex gap-1.5 items-center">
-                      <button onClick={() => { setEditingClient(client); setNewClient({ name: client.name, address: client.address || '', gstin: client.gstin || '', contactPerson: client.contactPerson || '', email: client.email || '', phone: client.phone || '' }); setIsCreatingClient(true); }} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Edit</button>
+                      <button onClick={() => { setEditingClient(client); setIsCreatingClient(true); }} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Edit</button>
                       <button onClick={() => deleteClient(client.id!)} className="text-slate-300 hover:text-red-500 transition-colors p-1.5 rounded hover:bg-slate-50"><Trash2 size={14} /></button>
                     </div>
                   </div>
@@ -1015,7 +954,7 @@ export default function App() {
                 <h2 className="text-xl font-bold text-slate-900">Registered Seller Profiles</h2>
                 <p className="text-xs text-slate-500 mt-1">Manage multiple company and vendor identities for invoice templates</p>
               </div>
-              <button onClick={() => { setEditingCompany(null); setNewCompany({ name: '', address: '', gstin: '', phone: '', email: '', pan: '' }); setIsCreatingCompany(true); }}
+              <button onClick={() => { setEditingCompany(null); setIsCreatingCompany(true); }}
                 className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-orange-100">
                 <Building size={16} /> Add Company
               </button>
@@ -1039,7 +978,7 @@ export default function App() {
                   <div className="pt-3 border-t border-slate-100 flex justify-between items-center gap-2">
                     <div className="flex gap-1.5 flex-wrap">
                       {!comp.isDefault && <button onClick={() => handleSetDefaultCompany(comp)} className="px-2.5 py-1.5 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Set Default</button>}
-                      <button onClick={() => { setEditingCompany(comp); setNewCompany({ ...comp }); setIsCreatingCompany(true); }} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Edit</button>
+                      <button onClick={() => { setEditingCompany(comp); setIsCreatingCompany(true); }} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold transition-all">Edit</button>
                     </div>
                     {!comp.isDefault && <button onClick={() => handleDeleteCompany(comp)} className="text-slate-300 hover:text-red-500 transition-colors p-1.5 rounded hover:bg-slate-50"><Trash2 size={14} /></button>}
                   </div>
@@ -1120,75 +1059,19 @@ export default function App() {
         )}
 
         {isCreatingClient && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white rounded-3xl p-8 space-y-6">
-              <h3 className="text-lg font-bold text-slate-900">{editingClient ? 'Edit Department / Client' : 'New Department / Client'}</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Department/Agency Name</label>
-                  <input placeholder="e.g. Executive Engineer, Z.P. Nagpur" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Billing Address</label>
-                  <textarea placeholder="Full Address" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1 h-20 resize-none" value={newClient.address} onChange={e => setNewClient({ ...newClient, address: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">GSTIN</label>
-                    <input placeholder="GSTIN" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 uppercase mt-1" value={newClient.gstin} onChange={e => setNewClient({ ...newClient, gstin: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Contact Person</label>
-                    <input placeholder="Full Name" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1" value={newClient.contactPerson} onChange={e => setNewClient({ ...newClient, contactPerson: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Email Address</label>
-                    <input type="email" placeholder="Email" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Phone Number</label>
-                    <input placeholder="Phone" className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => { setIsCreatingClient(false); setEditingClient(null); }} className="flex-1 py-2 font-bold text-slate-500">Cancel</button>
-                <button onClick={saveClient} className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-md shadow-orange-100">{editingClient ? 'Save Changes' : 'Add Department'}</button>
-              </div>
-            </div>
-          </motion.div>
+          <ClientModal
+            editingClient={editingClient}
+            onClose={() => { setIsCreatingClient(false); setEditingClient(null); }}
+            onSave={saveClient}
+          />
         )}
 
         {isCreatingCompany && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white rounded-3xl p-8 space-y-6">
-              <h3 className="text-lg font-bold text-slate-900">{editingCompany ? 'Edit Company Profile' : 'New Seller Company'}</h3>
-              <div className="space-y-3">
-                {[
-                  { key: 'name', label: 'Company / Seller Name', placeholder: 'e.g. PREM CONSTRUCTION' },
-                  { key: 'address', label: 'Business Address', placeholder: 'e.g. Nagpur Road, Maharashtra', textarea: true },
-                  { key: 'gstin', label: 'GSTIN', placeholder: 'GSTIN' },
-                  { key: 'pan', label: 'PAN Number', placeholder: 'PAN' },
-                  { key: 'phone', label: 'Mobile / Phone', placeholder: 'Phone' },
-                  { key: 'email', label: 'Email ID', placeholder: 'Email', type: 'email' },
-                ].map(field => (
-                  <div key={field.key}>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">{field.label}</label>
-                    {field.textarea
-                      ? <textarea placeholder={field.placeholder} className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1 h-20 resize-none" value={(newCompany as any)[field.key] || ''} onChange={e => setNewCompany({ ...newCompany, [field.key]: e.target.value })} />
-                      : <input type={field.type || 'text'} placeholder={field.placeholder} className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-orange-500 mt-1" value={(newCompany as any)[field.key] || ''} onChange={e => setNewCompany({ ...newCompany, [field.key]: e.target.value })} />
-                    }
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => { setIsCreatingCompany(false); setEditingCompany(null); setNewCompany({ name: '', address: '', gstin: '', phone: '', email: '', pan: '' }); }} className="flex-1 py-1.5 font-bold text-slate-500 text-sm">Cancel</button>
-                <button onClick={handleSaveCompany} className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-md shadow-orange-100 text-sm">{editingCompany ? 'Save Changes' : 'Create Profile'}</button>
-              </div>
-            </div>
-          </motion.div>
+          <CompanyModal
+            editingCompany={editingCompany}
+            onClose={() => { setIsCreatingCompany(false); setEditingCompany(null); }}
+            onSave={handleSaveCompany}
+          />
         )}
       </AnimatePresence>
 
