@@ -69,7 +69,7 @@ export default function App() {
   const getFilteredInvoices = useCallback(() => {
     return invoices.filter(inv => {
       // 1. Search Query
-      const matchesSearch = searchQuery === '' || 
+      const matchesSearch = searchQuery === '' ||
         inv.invoiceNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         inv.billTo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (inv.subject && inv.subject.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -92,7 +92,7 @@ export default function App() {
       // 4. Week
       if (filterWeek !== 'all') {
         const now = new Date();
-        
+
         // Calculate weeks
         const getWeekNumber = (d: Date) => {
           const temp = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -126,12 +126,12 @@ export default function App() {
 
   const handlePrintSummaryReport = () => {
     const filtered = getFilteredInvoices();
-    
+
     // Create a temporary hidden print container outside #root
     const printDiv = document.createElement('div');
     printDiv.id = 'print-summary-report';
     printDiv.className = 'print-only-report';
-    
+
     // Add print styles dynamically
     const style = document.createElement('style');
     style.innerHTML = `
@@ -469,7 +469,7 @@ export default function App() {
         showToast('Invoice created successfully!', 'success');
       }
       // Refresh stats
-      invoicesAPI.stats().then(setStats).catch(() => {});
+      invoicesAPI.stats().then(setStats).catch(() => { });
     } catch (err: any) {
       showToast(err.message || 'Failed to save invoice.', 'error');
     }
@@ -481,7 +481,7 @@ export default function App() {
       setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, status } : inv));
       if (viewingInvoice?.id === invoiceId) setViewingInvoice(prev => prev ? { ...prev, status } : null);
       showToast(`Invoice marked as ${status}!`, 'success');
-      invoicesAPI.stats().then(setStats).catch(() => {});
+      invoicesAPI.stats().then(setStats).catch(() => { });
     } catch (err: any) {
       showToast(err.message || 'Failed to update status.', 'error');
     }
@@ -661,9 +661,7 @@ export default function App() {
               <p className="text-slate-500 text-xs text-center mt-1 uppercase tracking-wider font-semibold">
                 Government Billing & GST Software
               </p>
-              <span className="mt-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200 uppercase tracking-wider">
-                🗄️ MySQL Backend
-              </span>
+
             </div>
 
             {/* Tab */}
@@ -784,26 +782,26 @@ export default function App() {
         {/* INVOICES */}
         {activeTab === 'invoices' && (
           <motion.div key="invoices" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-            
+
             {/* Search and Filters Bar */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-1">
                 {/* Search Bar */}
                 <div className="relative">
                   <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Search invoices..." 
+                  <input
+                    type="text"
+                    placeholder="Search invoices..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 text-xs font-semibold outline-none transition-colors" 
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 text-xs font-semibold outline-none transition-colors"
                   />
                 </div>
 
                 {/* Year Filter */}
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
                   <Filter size={14} className="text-slate-400 shrink-0" />
-                  <select 
+                  <select
                     value={filterYear}
                     onChange={(e) => setFilterYear(e.target.value)}
                     className="bg-transparent text-xs font-bold text-slate-700 outline-none w-full cursor-pointer"
@@ -818,7 +816,7 @@ export default function App() {
                 {/* Month Filter */}
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
                   <Filter size={14} className="text-slate-400 shrink-0" />
-                  <select 
+                  <select
                     value={filterMonth}
                     onChange={(e) => setFilterMonth(e.target.value)}
                     className="bg-transparent text-xs font-bold text-slate-700 outline-none w-full cursor-pointer"
@@ -842,7 +840,7 @@ export default function App() {
                 {/* Week Filter */}
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
                   <Filter size={14} className="text-slate-400 shrink-0" />
-                  <select 
+                  <select
                     value={filterWeek}
                     onChange={(e) => setFilterWeek(e.target.value)}
                     className="bg-transparent text-xs font-bold text-slate-700 outline-none w-full cursor-pointer"
@@ -856,16 +854,16 @@ export default function App() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2.5 shrink-0 self-end xl:self-center">
-                <button 
+                <button
                   onClick={handlePrintSummaryReport}
                   className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center gap-2 text-xs font-bold transition-all shadow-sm cursor-pointer"
                   title="Print Summary Report of Filtered Invoices"
                 >
                   <Printer size={15} /> Print Summary
                 </button>
-                
-                <button 
-                  onClick={() => setIsCreatingInvoice(true)} 
+
+                <button
+                  onClick={() => setIsCreatingInvoice(true)}
                   className="px-6 py-2.5 bg-orange-600 text-white rounded-xl flex items-center gap-2 text-xs font-bold hover:bg-orange-700 shadow-lg shadow-orange-100 transition-all cursor-pointer"
                 >
                   <Plus size={15} /> Create Invoice
@@ -1046,15 +1044,15 @@ export default function App() {
         )}
 
         {viewingInvoice && (
-          <InvoicePreview 
-            invoice={viewingInvoice} 
-            company={company} 
-            onClose={() => setViewingInvoice(null)} 
-            onUpdateStatus={status => updateInvoiceStatus(viewingInvoice.id!, status)} 
+          <InvoicePreview
+            invoice={viewingInvoice}
+            company={company}
+            onClose={() => setViewingInvoice(null)}
+            onUpdateStatus={status => updateInvoiceStatus(viewingInvoice.id!, status)}
             onEdit={() => {
               setEditingInvoice(viewingInvoice);
               setViewingInvoice(null);
-            }} 
+            }}
           />
         )}
 
